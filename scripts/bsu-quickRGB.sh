@@ -1,0 +1,1 @@
+bin/Toirt_Samhlaigh -ratioOfVisibilityThreshold 0.05 -sliceFactor 0.4 -textureSize 256 -leafSize 32 -size 512x126x512 -scale 1.0x1.0x1.0 -greenFile ../data/BSU/quickG.raw  -blueFile ../data/BSU/quickB.raw -redFile ../data/BSU/quickR.raw
