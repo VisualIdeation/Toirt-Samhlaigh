@@ -19,6 +19,10 @@
 #include <GLMotif/SubMenu.h>
 #include <GLMotif/WidgetManager.h>
 #include <Misc/ThrowStdErr.h>
+#include <Misc/File.h>
+#include <Misc/StandardValueCoders.h>
+#include <Misc/ConfigurationFile.h>
+#include <Vrui/VRWindow.h>
 
 /* Vrui includes to use the Vrui interface */
 #include <Vrui/Vrui.h>
@@ -60,7 +64,7 @@
  */
 Toirt_Samhlaigh::Toirt_Samhlaigh(int& argc, char**& argv, char**& appDefaults) :
     Vrui::Application(argc, argv, appDefaults), alphaChanged(false), analysisTool(0), animating(false), animation(NULL),
-    baseLocators(0), blueScale(1.0), blueVolumeFile(NULL), clippingPlanes(0), colorMapChanged(true), downSampling(NULL),
+    baseLocators(0), blueScale(1.0), blueVolumeFile(NULL), clippingPlanes(0), colorMapChanged(true), creditInformation(false), downSampling(NULL),
     firstFrame(true), focusAndContextPlanes(0), greenScale(1.0), greenVolumeFile(NULL), interactive(false),
             lighting(NULL), materials(NULL),
             mainMenu(NULL), maximumPriorityQueueSize(0), maximumPriorityQueueSizeChanged(false), maximumPriorityQueueSizeDialog(
@@ -171,6 +175,27 @@ void Toirt_Samhlaigh::alphaChangedCallback(Misc::CallbackData* callBackData) {
     colorMapChanged = true;
     Vrui::requestUpdate();
 } // end alphaChangedCallback()
+
+/*
+ * assignCreditInformation - Assign Credit Information to VRindow
+ */
+void Toirt_Samhlaigh::assignCreditInformation(void) const
+	{
+
+	if (creditInformation)
+		{
+		std::cout << "hey" << std::endl;
+
+		/* Assign Credit Information */
+		for(int i=0;i<Vrui::getNumWindows();i++)
+			{
+			Vrui::VRWindow * window = Vrui::getWindow(i);
+			window->setCreditTitle((creditTitle).c_str());
+			window->setCreditData((creditData).c_str());
+			window->setCreditGraphics((creditGraphics).c_str());
+			}
+		}
+	} // end assignCreditInformation()
 
 /*
  * blueChangedCallback - Change the blue.
@@ -885,6 +910,7 @@ void Toirt_Samhlaigh::display(GLContextData& glContextData) const {
  */
 void Toirt_Samhlaigh::frame(void) {
     if (firstFrame) {
+    	assignCreditInformation();
         firstFrame = false;
         secondFrame = true;
         scene->initialize();
@@ -1423,13 +1449,41 @@ void Toirt_Samhlaigh::processCommandLineArguments(int& argc, char**& argv) throw
                     volume->setSliceFactor(_sliceFactor);
                 } else
                     Misc::throwStdErr("Toirt_Samhlaigh::parseCommandLineArguments: Unrecognized slice factor command-line argument");
-            } else
+            } else if(strcasecmp(argv[i] + 1,"creditFile")==0) {
+            	++i;
+            	readCreditFile(argv[i]);
+			} else
                 Misc::throwStdErr("Toirt_Samhlaigh::parseCommandLineArguments: Unrecognized command-line argument");
         } else {
             Misc::throwStdErr("Toirt_Samhlaigh::parseCommandLineArguments: Unrecognized command-line argument");
         }
     }
 }
+
+/*
+ * readCreditFile - Read the credit file
+ *
+ * parameter creditFileName - const char*
+ */
+void Toirt_Samhlaigh::readCreditFile(const char* creditFileName)
+	{
+	try
+		{
+		std::string str(creditFileName);
+		/* Open credit file: */
+		Misc::ConfigurationFile creditFile((str).c_str());
+		Misc::ConfigurationFileSection credit=creditFile.getSection("/Credit");
+		/* Override program settings from credit file: */
+		creditTitle=credit.retrieveValue<std::string>("./title","title");
+		creditData=credit.retrieveValue<std::string>("./data","data authors");
+		creditGraphics=credit.retrieveValue<std::string>("./graphics","graphics authors");
+		creditInformation=true;
+		}
+	catch(std::runtime_error err)
+		{
+		std::cerr<<"Caught exception "<<err.what()<<" in ShowEarthModel::readCreditFile"<<std::endl;
+		}
+	} // end readCreditFile()
 
 /*
  * redChangedCallback - Change the red.

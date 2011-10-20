@@ -172,6 +172,14 @@ private:
     void processCommandLineArguments(int& argc, char**& argv) throw (std::runtime_error);
     virtual void toolCreationCallback(Vrui::ToolManager::ToolCreationCallbackData* cbData);
     virtual void toolDestructionCallback(Vrui::ToolManager::ToolDestructionCallbackData* cbData);
+
+	/* Credit Information - Elements and Methods */
+	bool creditInformation;
+	std::string creditTitle;
+	std::string creditData;
+	std::string creditGraphics;
+	void assignCreditInformation(void) const;
+	void readCreditFile(const char * creditFileName);
 };
 
 #endif
